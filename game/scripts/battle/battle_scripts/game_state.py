@@ -43,11 +43,52 @@ class GameState:
         self.sfx_whoosh = "audio/battle/whoosh1.ogg"
         self.sfx_monsterdead = "audio/battle/monsterdead1.ogg"
 
-    # Методы для управления состоянием игры
-    # Например, метод для добавления монстра
+        self.initial_img_pos = -270
+        self.initial_bar_pos = 102
+        self.initial_dmg_pos = 294
+
+        self.label_after_battle = ""
+
+        self.planned_actions = []
+
+        self.current_battle_background = "images/bg/1.webp"
+
+        # BATTLES
+        self.training_win_label = ""
+        self.training_lose_label = ""
+
+        # PLOT
+        self.fahrenheit_rel = 0
+        self.monument_rel = 0
+        self.planar_rel = 0
+
+        self.explotion_choice = True
+
+        self.in_costume = True
+        self.hero_costume = True
+
+        self.press_conference_fails = 0
+
+        self.attack_teen = True
+        self.attack_resonance = True
+
+        self.speak_with_teen = True
+        self.speak_with_resonance = True
+
+        self.battles = {"beat_nanoman" : False, "beat_resonance" : False, "beat_monument": False, "beat_planar": False}
+
+        # 0 - fahrenheit
+        # 1 - monument
+        # 2 - planar
+        # 3 - hospital
+        self.act_first_weekend_place = 3
+
+        self.first_monument_lose = True
+        self.monument_win = True
+        self.planar_win = True
+
     def add_monster(self, monster):
         self.monsters.append(monster)
 
-    # Метод для обновления текущего игрока
     def update_current_player(self, player):
         self.current_player = player

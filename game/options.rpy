@@ -12,7 +12,7 @@
 ##
 ## The _() surrounding the string marks it as eligible for translation.
 
-define config.name = _("RPG Battle Engine for Renpy")
+define config.name = _("Worm")
 
 
 ## Determines if the title given above is shown on the main menu screen. Set
@@ -32,13 +32,9 @@ define config.version = "1.2"
 ## triple-quotes, and leave a blank line between paragraphs.
 
 define gui.about = _p("""
-by Gabriel Herrera
+ЧЕРВЬ
 
-Music by Lucy Villarreal @filmnoirtoday
-
-Sprites from Persona Q2: New Cinema Labyrinth, Pokémon Black / White, Atelier Totori: The Adventurer of Arland and Hyperdevotion Noire: Goddess Black Heart
-
-Sound effects from Pokémon GO, Pokémon Sun / Moon, FATE Undiscovered Realms and Fire Emblem: Awakening
+Игра по мотивам творчества Джона МакКрэя (Wildbow).
 """)
 
 
@@ -46,7 +42,7 @@ Sound effects from Pokémon GO, Pokémon Sun / Moon, FATE Undiscovered Realms an
 ## distribution. This must be ASCII-only, and must not contain spaces, colons,
 ## or semicolons.
 
-define build.name = "RPGBattleEngine"
+define build.name = "Worm"
 
 
 ## Sounds and music ############################################################
@@ -151,7 +147,7 @@ default preferences.afm_time = 15
 ## This generally should not be changed, and if it is, should always be a
 ## literal string, not an expression.
 
-define config.save_directory = "RPG-Battle-Engine"
+define config.save_directory = "Worm"
 
 
 ## Icon ########################################################################

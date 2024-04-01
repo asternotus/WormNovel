@@ -1,0 +1,10 @@
+Showing damage animation for enemy with damage 0
+Showing damage animation for player with damage 7
+Showing damage animation for enemy with damage 0
+Showing damage animation for player with damage 4
+Showing damage animation for enemy with damage 0
+Showing damage animation for player with damage 6
+Showing damage animation for enemy with damage 0
+Showing damage animation for player with damage 7
+Showing damage animation for enemy with damage 21
+Showing damage animation for player with damage 7

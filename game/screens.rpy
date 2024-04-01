@@ -70,6 +70,10 @@ style menu_button_text is button_text:
     idle_color "#FFFFFF" # Белый цвет текста в обычном состоянии
     hover_color "#f2ff00" # Черный цвет текста при наведении
 
+style quick_menu_button_text is button_text:
+    idle_color "#FFFFFF" # Белый цвет текста в обычном состоянии
+    hover_color "#f2ff00" # Черный цвет текста при наведении
+
 ################################################################################
 ## In-game screens
 ################################################################################
@@ -330,27 +334,25 @@ screen navigation():
     vbox:
         style_prefix "navigation"
         xpos gui.navigation_xpos
-        yalign 0.9
         spacing gui.navigation_spacing
         if main_menu:
+            yalign 0.9
+            xalign 0.0
             textbutton _("Новая игра") action Start() text_style "menu_button_text"
-        else:
-            textbutton _("История") action ShowMenu("history") text_style "menu_button_text"
-            textbutton _("Сохранить") action ShowMenu("save") text_style "menu_button_text"
-        textbutton _("Загрузить") action ShowMenu("load") text_style "menu_button_text"
-        textbutton _("Настройки") action ShowMenu("preferences") text_style "menu_button_text"
-        #textbutton "Gallery" action ShowMenu("gallery")
-        if _in_replay:
-            textbutton _("End Replay") action EndReplay(confirm=True) text_style "menu_button_text"
-        elif not main_menu:
-            textbutton _("Main Menu") action MainMenu() text_style "menu_button_text"
-        textbutton _("О нас") action ShowMenu("about") text_style "menu_button_text"
-        if renpy.variant("pc"):
-            ## Help isn't necessary or relevant to mobile devices.
+            textbutton _("Загрузить") action ShowMenu("load") text_style "menu_button_text"
+            textbutton _("Настройки") action ShowMenu("preferences") text_style "menu_button_text"
             textbutton _("Помощь") action ShowMenu("help") text_style "menu_button_text"
-            ## The quit button is banned on iOS and unnecessary on Android.
+            textbutton _("О нас") action ShowMenu("about") text_style "menu_button_text"
             textbutton _("Выйти") action Quit(confirm=not main_menu) text_style "menu_button_text"
-
+        else:
+            yalign 0.9
+            xalign 2.9
+            textbutton _("Сохранить") action ShowMenu("save") text_style "quick_menu_button_text"
+            textbutton _("Загрузить") action ShowMenu("load") text_style "quick_menu_button_text"
+            textbutton _("Настройки") action ShowMenu("preferences") text_style "quick_menu_button_text"
+            textbutton _("Помощь") action ShowMenu("help") text_style "quick_menu_button_text"
+            textbutton _("О нас") action ShowMenu("about") text_style "quick_menu_button_text"
+            textbutton _("Выйти") action Quit(confirm=not main_menu) text_style "quick_menu_button_text"
 
 style navigation_button is gui_button activate_sound "audio/ui/ding.wav" hover_sound "audio/ui/hover.wav"
 style navigation_button_text is gui_button_text
@@ -466,9 +468,6 @@ screen game_menu(title, scroll=None, yinitial=0.0):
                     transclude
 
     use navigation
-    textbutton _("Вернуться"):
-        style "return_button"
-        action Return()
     label title
     if main_menu:
         key "game_menu" action ShowMenu("main_menu")
@@ -540,20 +539,16 @@ screen about():
     ## This use statement includes the game_menu screen inside this one. The
     ## vbox child is then included inside the viewport inside the game_menu
     ## screen.
-    use game_menu(_("About"), scroll="viewport"):
+    use game_menu(_("О нас"), scroll="viewport"):
 
         style_prefix "about"
 
         vbox:
-
-            label "[config.name!t]"
-            text _("Version [config.version!t]\n")
-
             ## gui.about is usually set in options.rpy.
             if gui.about:
                 text "[gui.about!t]\n"
 
-            text _("Made with {a=https://www.renpy.org/}Ren'Py{/a} [renpy.version_only].\n\n[renpy.license!t]")
+            text _("")
 
 
 ## This is redefined in options.rpy to add text to the about screen.
@@ -581,19 +576,19 @@ screen save():
 
     tag menu
 
-    use file_slots(_("Save"))
+    use file_slots(_("Сохранить"))
 
 
 screen load():
 
     tag menu
 
-    use file_slots(_("Load"))
+    use file_slots(_("Загрузить"))
 
 
 screen file_slots(title):
 
-    default page_name_value = FilePageNameInputValue(pattern=_("Page {}"), auto=_("Automatic saves"), quick=_("Quick saves"))
+    default page_name_value = FilePageNameInputValue(pattern=_("Page {}"), auto=_("Automatic saves"), quick=_(""))
 
     use game_menu(title):
 
@@ -708,30 +703,16 @@ style slot_button_text:
 
 screen preferences():
     tag menu
-    use game_menu(_("Preferences"), scroll="viewport"):
+    use game_menu(_("Настройки"), scroll="viewport"):
         vbox:
             hbox:
                 box_wrap True
                 if renpy.variant("pc"):
                     vbox:
                         style_prefix "radio"
-                        label _("Display")
-                        textbutton _("Window") action Preference("display", "window")
-                        textbutton _("Fullscreen") action Preference("display", "fullscreen")
-
-                vbox:
-                    style_prefix "radio"
-                    label _("Rollback Side")
-                    textbutton _("Disable") action Preference("rollback side", "disable")
-                    textbutton _("Left") action Preference("rollback side", "left")
-                    textbutton _("Right") action Preference("rollback side", "right")
-
-                vbox:
-                    style_prefix "check"
-                    label _("Skip")
-                    textbutton _("Unseen Text") action Preference("skip", "toggle")
-                    textbutton _("After Choices") action Preference("after choices", "toggle")
-                    textbutton _("Transitions") action InvertSelected(Preference("transitions", "toggle"))
+                        label _("Экран")
+                        textbutton _("В окне") action Preference("display", "window")
+                        textbutton _("Полный экран") action Preference("display", "fullscreen")
 
                 ## Additional vboxes of type "radio_pref" or "check_pref" can be
                 ## added here, to add additional creator-defined preferences.
@@ -741,31 +722,31 @@ screen preferences():
                 style_prefix "slider"
                 box_wrap True
                 vbox:
-                    label _("Text Speed")
+                    label _("Скорость текста")
                     bar value Preference("text speed")
-                    label _("Auto-Forward Time")
+                    label _("Время авто-проявления")
                     bar value Preference("auto-forward time")
 
                 vbox:
                     if config.has_music:
-                        label _("Music Volume")
+                        label _("Громкость Музыки")
                         hbox:
                             bar value Preference("music volume")
                     if config.has_sound:
-                        label _("Sound Volume")
+                        label _("Громкость Звуков")
                         hbox:
                             bar value Preference("sound volume")
                             if config.sample_sound:
                                 textbutton _("Test") action Play("sound", config.sample_sound)
                     if config.has_voice:
-                        label _("Voice Volume")
+                        label _("Громкость Голоса")
                         hbox:
                             bar value Preference("voice volume")
                             if config.sample_voice:
                                 textbutton _("Test") action Play("voice", config.sample_voice)
                     if config.has_music or config.has_sound or config.has_voice:
                         null height gui.pref_spacing
-                        textbutton _("Mute All"):
+                        textbutton _("Заглушить Всё"):
                             action Preference("all mute", "toggle")
                             style "mute_all_button"
 
@@ -925,13 +906,13 @@ style history_label_text:
 screen help():
     tag menu
     default device = "keyboard"
-    use game_menu(_("Help"), scroll="viewport"):
+    use game_menu(_("Помощь"), scroll="viewport"):
         style_prefix "help"
         vbox:
             spacing 23
             hbox:
-                textbutton _("Keyboard") action SetScreenVariable("device", "keyboard")
-                textbutton _("Mouse") action SetScreenVariable("device", "mouse")
+                textbutton _("Клавиатура") action SetScreenVariable("device", "keyboard")
+                textbutton _("Мышь") action SetScreenVariable("device", "mouse")
 
                 if GamepadExists():
                     textbutton _("Gamepad") action SetScreenVariable("device", "gamepad")
@@ -948,70 +929,70 @@ screen keyboard_help():
 
     hbox:
         label _("Enter")
-        text _("Advances dialogue and activates the interface.")
+        text _("Пролистывание диалогов и Подтверждение выбора.")
 
     hbox:
-        label _("Space")
-        text _("Advances dialogue without selecting choices.")
+        label _("Пробел")
+        text _("Пролистывание диалогов и Подтверждение выбора.")
 
     hbox:
-        label _("Arrow Keys")
-        text _("Navigate the interface.")
+        label _("Стрелки")
+        text _("Навигация между выборами и интерфейсом.")
 
     hbox:
         label _("Escape")
-        text _("Accesses the game menu.")
+        text _("Показать меню.")
 
     hbox:
         label _("Ctrl")
-        text _("Skips dialogue while held down.")
+        text _("Пропускать диалоги (при зажатии).")
 
     hbox:
         label _("Tab")
-        text _("Toggles dialogue skipping.")
+        text _("Режим пропуск прочитанных диалогов.")
 
     hbox:
         label _("Page Up")
-        text _("Rolls back to earlier dialogue.")
+        text _("Прокрутка к ранним диалогам.")
 
     hbox:
         label _("Page Down")
-        text _("Rolls forward to later dialogue.")
+        text _("Прокрутка к поздним диалогам.")
 
     hbox:
         label "H"
-        text _("Hides the user interface.")
+        text _("Скрыть пользовательский интерфейс.")
 
     hbox:
         label "S"
-        text _("Takes a screenshot.")
+        text _("Сделать скриншот.")
 
     hbox:
         label "V"
-        text _("Toggles assistive {a=https://www.renpy.org/l/voicing}self-voicing{/a}.")
+        text _("Пробудить голосового демона")
 
 
 screen mouse_help():
 
     hbox:
-        label _("Left Click")
-        text _("Advances dialogue and activates the interface.")
+        label _("Левая Кнопка")
+        text _("Пролистывание диалогов и Подтверждение выбора.")
 
     hbox:
-        label _("Middle Click")
-        text _("Hides the user interface.")
+        label _("Средняя Кнопка")
+        text _("Скрыть пользовательский интерфейс.")
 
     hbox:
-        label _("Right Click")
-        text _("Accesses the game menu.")
+        label _("Правая кнопка")
+        text _("Показать меню.")
 
     hbox:
-        label _("Mouse Wheel Up\nClick Rollback Side")
-        text _("Rolls back to earlier dialogue.")
+        label _("Прокрутить колесом Вверх")
+        text _("Прокрутка к ранним диалогам.")
 
     hbox:
-        label _("Mouse Wheel Down")
-        text _("Rolls forward to later dialogue.")
+        label _("Прокрутить колесом Вниз")
+        text _("Прокрутка к поздним диалогам.")
 
 
 screen gamepad_help():
