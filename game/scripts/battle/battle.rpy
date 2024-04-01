@@ -57,9 +57,6 @@ label battle:
     jump battling
 
 label player_select:
-    $ spark.img_pos = 512
-    $ spark.bar_pos = 944
-    $ spark.dmg_pos = 1136
     # call screen select_p1
 
     return
@@ -182,19 +179,19 @@ label battling:
 label end_battle:
     hide screen battle_overlay
     with dissolve
+    hide screen battle_message
+    hide screen display_monsters
     if game_state.win:
         stop music
-        play sound fanfare
-        me "Победа!"
-        stop sound
-        $ bf.exp_formula()
-        call expression after_battle_level from _call_expression
+        # play sound fanfare
+        # me "Победа!"
+        # stop sound
+        # $ bf.exp_formula()
+        call expression game_state.label_after_battle from _call_expression
     else:
         $ game_state.message = "lost"
         "Поражение."
         jump start
-    hide screen battle_message
-    hide screen display_monsters
     $ battle_manager.partyRevive()
     return
 

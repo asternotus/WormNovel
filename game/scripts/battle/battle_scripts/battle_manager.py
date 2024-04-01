@@ -66,7 +66,7 @@ class BattleManager:
 
     def startPlayersTurn(self):
         for p in self.game_state.battle_players:
-            p.actions_count = 2
+            p.actions_count = 1
             p.turn = False
             p.defending = False
 
@@ -154,3 +154,9 @@ class BattleManager:
 
     def use_item(self):
         pass
+
+    def set_players_positions(self):
+        for i, player in enumerate(self.game_state.battle_players):
+            player.img_pos = self.game_state.initial_img_pos + i * 500 + 500
+            player.bar_pos = self.game_state.initial_bar_pos + i * 500
+            player.dmg_pos = self.game_state.initial_dmg_pos + i * 500

@@ -31,7 +31,7 @@ class Char(object):
         self.img_pos = img_pos  # позиция изображения
         self.bar_pos = bar_pos  # позиция полоски
         self.dmg_pos = dmg_pos  # позиция урона
-        self.actions_count = 2  # количество действий
+        self.actions_count = 1  # количество действий
 
     # Свойство для здоровья.
     @property
