@@ -73,7 +73,7 @@ transform shake:
 
 init python:
     import time
-    debug_mode = False
+    debug_mode = True
     renpy.music.register_channel("rain_channel", "sfx", True)
     renpy.music.register_channel("crowd_channel", "sfx", True)
     renpy.music.register_channel("backsounds_channel", "sfx", False)
