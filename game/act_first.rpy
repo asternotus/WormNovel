@@ -90,6 +90,8 @@ init python:
 
 label start:
 
+    jump act_second_arguments
+
     # jump act_first_review
     # jump act_first_training
     # jjump act_first_training_battle
