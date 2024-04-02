@@ -14,7 +14,7 @@ init python:
 
     DAMAGE_ANIM_SPEED = 0.25
     DAMAGE_ANIM_DURATION = 1.0
-    DAMAGE_ANIM_DELAY = 1.5
+    DAMAGE_ANIM_DELAY = 0.1
 
     # PLAYER POSTION
     PLAYER_X_POS = 0.1
@@ -57,10 +57,13 @@ init python:
 
     # SKILLS SLOTS POSITION
     SKILLS_SLOTS_X_ALIGN = 0.5
-    SKILLS_SLOTS_Y_ALIGN = 0.42
+    SKILLS_SLOTS_Y_ALIGN = 0.62
     SKILLS_SLOTS_SPACING = 10
 
-    SKILLS_SLOTS_COUNT = 3
+    # WEAKNESS INDICATORS POSITION
+    WEAKNESS_INDICATORS_X_ALIGN = 0.5
+    WEAKNESS_INDICATORS_Y_ALIGN = 0.7
+    WEAKNESS_INDICATORS_SPACING = 10
 
     # DICE POSITION
     DICE_X_ALING = 0.5
@@ -82,15 +85,12 @@ init python:
         result_text = ""
         hints = []
 
-        hints.append("1. Выберите от ОДНОЙ до ТРЁХ способностей.")
-        hints.append("2. Каждая способность имеет СЛОЖНОСТЬ против\nконкретного противника.")
-        hints.append("3. Больше способностей за ход - выше СЛОЖНОСТЬ.")
-        hints.append("4. Против каждого противника есть \nУЯЗВИМОСТЬ (уникальная комбинация), приводящая \nк победе.")
-        hints.append("5. Сложность УЯЗВИМОСТИ всегда равна 10.")
-        hints.append("6. Чтобы найти УЯЗВИМОСТЬ следите за индикаторами:")
+        hints.append("1. Чтобы победить, необходимо обнаружить УЯЗВИМОСТЬ.")
+        hints.append("2. Уязвимость - уникальная последовательность из способностей.")
+        hints.append("3. Разместите способности в ячейках и нажмите ПОДТВЕРДИТЬ.")
+        hints.append("4. Проанализируйте результат по цветовым подсказкам.")
 
-        hints.append("{color=#FF0000}КРАСНЫЙ{/color} - способности нет в УЯЗВИМОСТИ.")
-        hints.append("{color=#FFFF00}ЖЁЛТЫЙ{/color} - способность должна быть не на этой ячейке.")
+        hints.append("{color=#FFA500}ОРАНЖЕВЫЙ{/color} - способность должна быть не на этой ячейке.")
         hints.append("{color=#00FF00}ЗЕЛЁНЫЙ{/color} - способность в нужной ячейке.")
 
         for hint in hints:
@@ -177,17 +177,9 @@ transform sway:
     linear CHAR_MOVE_LINEAR xoffset CHAR_MOVE_XOFFSET_MIN
     repeat
 
-# Анимация цифры с уроном по противику
-transform damage_animation_transform:
-    alpha INVISIBLE
-    linear DAMAGE_ANIM_SPEED alpha VISIBLE
-    linear DAMAGE_ANIM_DURATION alpha VISIBLE
-    linear DAMAGE_ANIM_SPEED alpha INVISIBLE
-
 # Анимация цифры с уроном по персонажу игрока
 transform damage_enemy_animation_transform:
     alpha INVISIBLE
-    pause DAMAGE_ANIM_DELAY
     linear DAMAGE_ANIM_SPEED alpha VISIBLE
     linear DAMAGE_ANIM_DURATION alpha VISIBLE
     linear DAMAGE_ANIM_SPEED alpha INVISIBLE
@@ -209,17 +201,6 @@ screen game_hint(hint_message):
         
     text hint_message:
         style "hint_text"
-
-# Экран урона по противнику
-screen damage_animation(damage_amount=0, target=""):
-    if damage_amount > 0:
-        text str(damage_amount):
-            style "damage_on_enemy"
-            at damage_animation_transform
-    else:
-        text "Промах":
-            style "damage_on_enemy"
-            at damage_animation_transform
 
 # Экран урона по игроку
 screen damage_animation_enemy(damage_amount=0, target=""):
@@ -273,24 +254,13 @@ screen battle_screen():
             at sway, hover_effect
             action [Function(game.start_select_skills), Show("skill_panel")]
 
-        text "[game.enemy.hp]/[game.enemy.max_hp]":
-            xalign ENEMY_STATS_X_POS
-            ypos ENEMY_STATS_Y_POS
-            style "battle_stats"
-
     else:
         imagebutton:
             idle game.enemy.image
             xalign ENEMY_X_POS
             yalign ENEMY_Y_POS
             at death
-            action Show("skill_panel")
-
-        text "[game.enemy.hp]/[game.enemy.max_hp]":
-            xalign ENEMY_STATS_X_POS
-            ypos ENEMY_STATS_Y_POS
-            style "battle_stats"
-            at death        
+            action Show("skill_panel")     
 
 # ЭКРАН ОПИСАНИЯ СКИЛЛА
 screen skill_info(skill_image="images/skills/blank.png", skill_name="", skill_description=""):
@@ -341,7 +311,7 @@ screen skill_panel():
         xalign SKILLS_SLOTS_X_ALIGN
         yalign SKILLS_SLOTS_Y_ALIGN
         spacing SKILLS_SLOTS_SPACING
-        for i in range(SKILLS_SLOTS_COUNT):
+        for i in range(game.enemy.skill_slots_count):
             $ slot_skill = game.skill_slots[i]
             $ slot_img = slot_skill.img if slot_skill is not None else "images/skills/blank.png"
             $ slot_style = game.slot_styles[i]
@@ -361,55 +331,27 @@ screen skill_panel():
                     idle "images/skills/blank.png"
                     action NullAction()
                     style slot_style
-    
-    # Таймер для анимации числа, запускается после нажатия кнопки "Подтвердить"
-    if game.number_animation_running:
-        timer 0.02 repeat True action Function(game.animate_number)
 
-    # Расположение кубика
-    add "images/battle/dice.png":
-        xalign DICE_X_ALING
-        yalign DICE_Y_ALING
+    if game.indicators_shown:
+        $ matches = game.compare_skills_with_weakness()
+        hbox:
+            xalign WEAKNESS_INDICATORS_X_ALIGN
+            yalign WEAKNESS_INDICATORS_Y_ALIGN
+            spacing WEAKNESS_INDICATORS_SPACING
 
-    # Расположение числового результата проверки
-    text str(game.current_number):
-        xalign RESULT_NUMBER_X_ALIGN
-        yalign RESULT_NUMBER_Y_ALIGN
-        color game.number_color
-        style "result_check_number"
+            for i in range(matches[0]):
+                add "images/battle/green_flash.png"
 
-    $ current_difficulty = ""
-    if game.current_difficulty == 0:
-        $ current_difficulty = ""
-    else:
-        $ current_difficulty = game.current_difficulty
+            for i in range(matches[1]):
+                add "images/battle/orange_flash.png"
+        
+        timer 2.5 action Function(game.hide_skill_panel)
 
-    # Расположение требуемой сложности для проверки
-    text "Сложность: " + str(current_difficulty):
-        xalign DIFFICULTY_TEXT_NUMBER_X_ALIGN
-        yalign DIFFICULTY_TEXT_NUMBER_Y_ALIGN
-
-    # Кнопка Подтвердить
-    if any(slot is not None for slot in game.skill_slots) and game.show_confirm_button:
+    if all(slot is not None for slot in game.skill_slots) and game.confirm_button_shown:
         textbutton "Подтвердить":
-            action [Function(game.save_skills_and_start_number_animation), Function(game.update_slot_styles_based_on_weakness), Function(game.finish_select_skills)]
+            action [Function(game.save_skills), Function(game.finish_select_skills)]
             xalign SUBMIT_BUTTON_X_ALIGN
             yalign SUBMIT_BUTTON_Y_ALIGN
-
-    # Определение текста после результата броска Успех или Провал
-    $ result_text = "Успех" if game.number_color == "#00FF00" else "Провал"
-    $ result_color = game.number_color
-
-    if not game.number_animation_running and not game.show_confirm_button:
-        text result_text:
-            xalign RESULT_TEXT_X_ALIGN
-            yalign RESULT_TEXT_Y_ALIGN
-            color result_color
-            style "result_check_text"
-
-    # Закрыть экран, если выбор сделан
-    if game.should_close_panel:
-        timer 2.0 action Function(game.hide_skill_panel)
 
 # ИГРОВОЙ ЦИКЛ
 label worm_battle:

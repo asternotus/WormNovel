@@ -4,34 +4,26 @@ class Game:
     def __init__(self, renpy, game_state, battle, enemy, player):
         self.renpy = renpy
         self.game_state = game_state
-        self.skill_slots = [None, None, None]
-        self.selected_skills = []
-        self.current_number = 0
-        self.number_animation_running = False
-        self.damage_text = "0"
-        self.damage_color = "#FFFFFF"
-        self.animation_counter = 0
-        self.number_color = "#FFFFFF"
-        self.should_close_panel = False
-        self.show_confirm_button = True
-        self.damage_animation_visible = False
         self.enemy = enemy
         self.player = player
+        self.battle = battle
 
-        self.damage_thresholds = {0: 0, 1: 6, 2: 11, 3: 16}
-        self.current_difficulty = 0
-        self.slot_styles = ["skill_slot_blank", "skill_slot_blank", "skill_slot_blank"]
-        self.skill_slot_style = "skill_slot_blank"
+        # Инициализация слотов в соответствии с количеством слотов противника
+        self.skill_slots = [None] * enemy.skill_slots_count
+        self.selected_skills = []
+        self.indicators_shown = False
+        self.damage_text = "0"
+        self.panel_is_closed = False
+        self.confirm_button_shown = True
+        self.damage_animation_visible = False
+        self.slot_styles = ["skill_slot_blank"] * enemy.skill_slots_count
 
         self.enemy_dead = False
         self.player_dead = False
-
         self.death_animation_completed = False
 
-        self.battle = battle
-
     def log_battle(self, text):
-        with open('battle.txt', 'a') as file:  # Открывает файл для добавления текста ('a' означает append)
+        with open('battle.txt', 'a') as file:
             file.write(text + '\n') 
 
     def start_battle(self):
@@ -51,66 +43,43 @@ class Game:
         self.renpy.hide_screen("game_hint")
         self.renpy.hide_screen("skill_info")
         self.renpy.hide_screen("skill_panel")
-        self.renpy.hide_screen("damage_animation")
-        self.renpy.hide_screen("damage_animation")
         self.renpy.hide_screen("damage_animation_enemy")
         self.renpy.hide_screen("check_end_game_conditions")
 
-    def update_slot_styles_based_on_weakness(self):
-        for i, skill in enumerate(self.skill_slots):
-            if skill is None:
-                self.slot_styles[i] = "skill_slot_blank"
+    def compare_skills_with_weakness(self):
+        exact_matches = 0
+        partial_matches = 0
+
+        for i, skill in enumerate(self.selected_skills):
+            if i < len(self.enemy.weakness) and skill == self.enemy.weakness[i]:
+                exact_matches += 1
             elif skill in self.enemy.weakness:
-                if i < len(self.enemy.weakness) and skill == self.enemy.weakness[i]:
-                    self.slot_styles[i] = "skill_slot_green"
-                else:
-                    self.slot_styles[i] = "skill_slot_yellow"
-            else:
-                self.slot_styles[i] = "skill_slot_red"
+                partial_matches += 1
 
-    def check_weakness(self, selected_skills):
-        return selected_skills == self.enemy.weakness
+        return [exact_matches, partial_matches]
 
-    def apply_skills_or_enemy_attack(self, defender, is_enemy=False):
-        if is_enemy:
-            enemy_skill = choice(self.enemy.skills)
-            damage = enemy_skill.apply(defender)
-            self.show_damage_animation(damage, "player")
-            
-        else:
-            total_damage = 0
+    def apply_skills(self):
+        # Нанесение урона игроку от противника
+        enemy_skill = choice(self.enemy.skills)
+        damage = enemy_skill.apply(self.player)
+        self.show_damage_animation(damage, "player")
 
-            if self.current_number >= self.current_difficulty:
-                if self.check_weakness(self.selected_skills):
-                    total_damage += self.enemy.max_hp
-                    self.enemy.hp -= max(total_damage, 0)
-                else:
-                    for skill in self.selected_skills:
-                        total_damage += skill.apply(defender)
-            self.show_damage_animation(total_damage, "enemy")
-
-        if self.enemy.hp <= 0:
+        # Проверка на победу игрока
+        if self.compare_skills_with_weakness()[0] == len(self.enemy.weakness):
+            self.enemy.hp = 0
             self.enemy_dead = True
-            self.death_animation_started = True
             self.game_state.battles[self.battle] = True
             self.renpy.show_screen("check_end_game_conditions")
-            
-        elif self.player.hp <= 0 and self.enemy.hp > 0:
+
+        # Проверка на поражение игрока
+        if self.player.hp <= 0:
             self.player_dead = True
-            self.death_animation_started = True
             self.game_state.battles[self.battle] = False
-            self.renpy.show_screen("check_end_game_conditions")
-            
+            self.renpy.show_screen("check_end_game_conditions")          
 
     def show_damage_animation(self, damage, target_name):
-        if damage > 0:
-            self.damage_text, self.damage_color = str(damage), "#FF0000"
-        else:
-            self.damage_text, self.damage_color = "Промах", "#FFFFFF"
-
         if target_name == "enemy":
-            self.renpy.hide_screen("damage_animation")
-            self.renpy.show_screen("damage_animation", damage_amount=damage, target="enemy")
+            pass
         else:
             self.renpy.hide_screen("damage_animation_enemy")
             self.renpy.show_screen("damage_animation_enemy", damage_amount=damage, target="player")
@@ -121,58 +90,29 @@ class Game:
         for i in range(len(self.skill_slots)):
             if self.skill_slots[i] is None:
                 self.skill_slots[i] = skill_image
-                self.renpy.restart_interaction()
                 break
+        self.renpy.restart_interaction()
 
     def clear_slot(self, index):
-        if self.skill_slots[index] is not None:
+        if 0 <= index < len(self.skill_slots) and self.skill_slots[index] is not None:
             self.skill_slots[index] = None
             self.renpy.restart_interaction()
 
-    def animate_number(self):
-        if self.number_animation_running and self.animation_counter < 20:
-            self.current_number = self.renpy.random.randint(1, 20)
-            self.animation_counter += 1
-        else:
-            self.number_animation_running = False
-            self.update_number_color()
-            self.should_close_panel = True
-
-    def save_skills_and_start_number_animation(self):
-        self.selected_skills.clear()
+    def save_skills(self):
         self.selected_skills = [slot for slot in self.skill_slots if slot is not None]
-        self.number_animation_running = True
-        self.show_confirm_button = False
-
-        self.current_difficulty = 10
-        for skill in self.selected_skills:
-            self.current_difficulty += skill.difficulty
-
-        if self.check_weakness(self.selected_skills):
-           self.current_difficulty = 10 
-        
-    def update_number_color(self):
-        self.number_color = "#00FF00" if self.current_number >= self.current_difficulty else "#FF0000"
+        self.indicators_shown = True
+        self.confirm_button_shown = False
 
     def hide_skill_panel(self):
         self.renpy.hide_screen("skill_panel")
-        self.should_close_panel = False
-        self.apply_skills_or_enemy_attack(self.enemy)
+        self.panel_is_closed = False
         self.reset_for_next_turn()
-        self.current_number = 0
-        self.current_difficulty = 0
-        self.number_color = "#FFFFFF"
-        self.slot_styles = ["skill_slot_blank" for _ in range(3)]
+        self.slot_styles = ["skill_slot_blank"] * self.enemy.skill_slots_count
 
     def reset_for_next_turn(self):
+        self.apply_skills()
         self.selected_skills = []
-        self.number_animation_running = False
-        self.animation_counter = 0
-        self.skill_slots = [None, None, None]
-        self.show_confirm_button = True
+        self.indicators_shown = False
+        self.skill_slots = [None] * len(self.skill_slots)  # Сброс слотов с сохранением их количества
+        self.confirm_button_shown = True
         self.renpy.restart_interaction()
-        self.apply_skills_or_enemy_attack(self.player, is_enemy=True)
-
-    def hide_damage_animation(self):
-        self.damage_animation_visible = False
-        self.renpy.hide_screen("damage_animation")
