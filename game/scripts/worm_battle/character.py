@@ -7,3 +7,5 @@ class Character:
         self.image = image
         self.skills = []
         self.weakness = []
+        self.skill_slots_count = 3
+        

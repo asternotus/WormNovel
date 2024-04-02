@@ -73,7 +73,7 @@ transform shake:
 
 init python:
     import time
-    debug_mode = True
+    debug_mode = False
     renpy.music.register_channel("rain_channel", "sfx", True)
     renpy.music.register_channel("crowd_channel", "sfx", True)
     renpy.music.register_channel("backsounds_channel", "sfx", False)
@@ -92,7 +92,7 @@ label start:
 
     # jump act_first_review
     # jump act_first_training
-    # jjump act_first_training_battle
+    # jump act_first_training_battle
     # jump act_first_meeting
     # jump act_first_hospital
     # jump act_first_wormstory
@@ -3568,9 +3568,10 @@ label act_first_school_incendent_battle:
 
     $ resonance_battle = Character("Резонанс", 100, 50, 80, "images/char/resonance_battle.png")
     $ resonance_battle.skills = [enemy_attack]
+    $ resonance_battle.skill_slots_count = 5
 
     $ game = Game(renpy, game_state, "beat_resonance", resonance_battle, spark)
-    $ game.enemy.weakness = [overload, thunderbolt, electric_pulse]
+    $ game.enemy.weakness = [electric_pulse, thunderbolt, electric_pulse, electric_pulse, overload]
 
     jump worm_battle
 
