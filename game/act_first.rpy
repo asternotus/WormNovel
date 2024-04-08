@@ -94,7 +94,7 @@ label start:
 
     # jump act_first_review
     # jump act_first_training
-    jump act_first_training_battle
+    # jump act_first_training_battle
     # jump act_first_meeting
     # jump act_first_hospital
     # jump act_first_wormstory
