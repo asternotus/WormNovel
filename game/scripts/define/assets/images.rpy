@@ -4,6 +4,7 @@ image bb1 = "images/bg/1.webp"
 image bb2 = "images/bg/2.webp"
 image bb3 = "images/bg/3.webp"
 
+# ACT 1
 image act_first_prologue_street = "images/bg/act_first_prologue_street.png"
 image act_first_prologue_police = "images/bg/act_first_prologue_police.png"
 image act_first_prologue_running = "images/bg/act_first_prologue_running.png"
@@ -206,6 +207,9 @@ image act_first_sophia_house_entrance = "images/bg/act_first_sophia_house_entran
 image act_first_sophia_house_inside = "images/bg/act_first_sophia_house_inside.png"
 
 image vacuum_costume_mask_idle = "images/char/vacuum_costume_mask_idle.png"
+
+# ACT 2
+image act_second_ronin_office_cabinet = "images/bg/act_second_ronin_office_cabinet.png"
 
 image player_battle = TransitionConditionSwitch(Dissolve(0.5, alpha=True),
     "game_state.current_player == spark","images/char/glow/player_battle.webp",

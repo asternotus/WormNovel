@@ -17,7 +17,7 @@ define dictor = Character("Диктор", what_font="gui/fonts/comic.ttf", what_
 define zion = Character("Сын", what_font="gui/fonts/comic.ttf", what_size=35, what_color="#FFFFFF", what_outlines=[(2, "#afa600", 0, 0)], who_color="#FFFFFF", who_outlines=[(2, "#afa600", 0, 0)])
 
 define nobody_ronin = Character("???", what_font="gui/fonts/comic.ttf", what_size=35, what_color="#FFFFFF", what_outlines=[(2, "#262626", 0, 0)], who_color="#FFFFFF", who_outlines=[(2, "#262626", 0, 0)])
-define ronin = Character("Ронин", what_font="gui/fonts/comic.ttf", what_size=35, what_color="#FFFFFF", what_outlines=[(2, "#262626", 0, 0)], who_color="#FFFFFF", who_outlines=[(2, "#262626", 0, 0)])
+define ronin = Character("Ронин", what_font="gui/fonts/comic.ttf", what_size=35, what_color="#FFFFFF", what_outlines=[(2, "#A40000", 0, 0)], who_color="#FFFFFF", who_outlines=[(2, "#A40000", 0, 0)])
 
 define fahrenheit = Character("Фаренгейт", what_font="gui/fonts/comic.ttf", what_size=35, what_color="#FFFFFF", what_outlines=[(2, "#006182", 0, 0)], who_color="#FFFFFF", who_outlines=[(2, "#006182", 0, 0)])
 define monument = Character("Монумент", what_font="gui/fonts/comic.ttf", what_size=35, what_color="#FFFFFF", what_outlines=[(2, "#5a4500", 0, 0)], who_color="#FFFFFF", who_outlines=[(2, "#5a4500", 0, 0)])
@@ -90,11 +90,11 @@ init python:
 
 label start:
 
-    jump act_second_arguments
+    # jump act_second_ronin_office
 
     # jump act_first_review
     # jump act_first_training
-    # jjump act_first_training_battle
+    jump act_first_training_battle
     # jump act_first_meeting
     # jump act_first_hospital
     # jump act_first_wormstory
@@ -7044,6 +7044,8 @@ label act_first_hospital_weekend:
 
         "Использовать силу":
 
+            $ game_state.hospital_use_power = True
+
             hide character
 
             play music resonance_battle_music loop volume 0.6
@@ -7411,6 +7413,8 @@ label act_first_hospital_weekend:
         "Подчиниться приказу":
 
             play music basement_music loop volume 0.6
+
+            $ game_state.hospital_use_power = False
 
             me "Я не могла рисковать секретностью."
 
