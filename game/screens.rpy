@@ -245,10 +245,13 @@ style input:
 ##
 ## https://www.renpy.org/doc/html/screen_special.html#choice
 
+default choice_yalign = 0.5
+
 screen choice(items):
     style_prefix "choice"
 
     vbox:
+        yalign choice_yalign
         for i in items:
             textbutton i.caption action i.action
 

@@ -57,7 +57,7 @@ class GameState:
         self.training_win_label = ""
         self.training_lose_label = ""
 
-        # PLOT
+        # PLOT - ACT 1
         self.fahrenheit_rel = 0
         self.monument_rel = 0
         self.planar_rel = 0
@@ -86,6 +86,15 @@ class GameState:
         self.first_monument_lose = True
         self.monument_win = True
         self.planar_win = True
+
+        self.hospital_use_power = True
+
+        # PLOT - ACT 2
+        self.fahrenheit_is_ready = False
+        self.monument_is_ready = False
+        self.planar_is_ready = False
+
+        self.actual_investigation_labels = []
 
     def add_monster(self, monster):
         self.monsters.append(monster)
