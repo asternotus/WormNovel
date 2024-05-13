@@ -209,7 +209,49 @@ image act_first_sophia_house_inside = "images/bg/act_first_sophia_house_inside.p
 image vacuum_costume_mask_idle = "images/char/vacuum_costume_mask_idle.png"
 
 # ACT 2
+image vector_mask_closed_idle = "images/char/vector_mask_closed_idle.png"
+image vector_mask_opened_idle = "images/char/vector_mask_opened_idle.png"
+image vector_mask_half_opened_idle = "images/char/vector_mask_half_opened_idle.png"
+image vector_mask_half_opened_smile = "images/char/vector_mask_half_opened_smile.png"
+image collector_costume_mask_idle = "images/char/collector_costume_mask_idle.png"
+image buran_idle = "images/char/buran_idle.png"
+image buran_scared = "images/char/buran_scared.png"
+
 image act_second_ronin_office_cabinet = "images/bg/act_second_ronin_office_cabinet.png"
+image act_second_west_city_initial_street = "images/bg/act_second_west_city_initial_street.png"
+image act_second_falcon_bright_bar = "images/bg/act_second_falcon_bright_bar.png"
+image act_second_falcon_bright_door = "images/bg/act_second_falcon_bright_door.png"
+image act_second_falcon_bright_collectors_room = "images/bg/act_second_falcon_bright_collectors_room.png"
+image act_second_bridge = "images/bg/act_second_bridge.png"
+image act_second_bridge_down = "images/bg/act_second_bridge_down.png"
+image act_second_near_city_street = "images/bg/act_second_near_city_street.png"
+
+image act_second_resonance_story_hand = "images/bg/act_second_resonance_story_hand.png"
+image act_second_resonance_story_piano_home = "images/bg/act_second_resonance_story_piano_home.png"
+image act_second_resonance_story_piano_calm = "images/bg/act_second_resonance_story_piano_calm.png"
+image act_second_resonance_story_piano_scared = "images/bg/act_second_resonance_story_piano_scared.png"
+image act_second_resonance_story_piano_fist = "images/bg/act_second_resonance_story_piano_fist.png"
+image act_second_resonance_story_father_high = "images/bg/act_second_resonance_story_father_high.png"
+image act_second_resonance_story_boy_scared = "images/bg/act_second_resonance_story_boy_scared.png"
+image act_second_resonance_story_street = "images/bg/act_second_resonance_story_street.png"
+
+image act_second_legion_story_five_girls = "images/bg/act_second_legion_story_five_girls.png"
+image act_second_legion_story_lab = "images/bg/act_second_legion_story_lab.png"
+image act_second_legion_story_lab_experiments = "images/bg/act_second_legion_story_lab_experiments.png"
+
+image act_second_sammy_house_entrance = "images/bg/act_second_sammy_house_entrance.png"
+image act_second_sammy_house_hall = "images/bg/act_second_sammy_house_hall.png"
+image act_second_sammy_house_kitchen = "images/bg/act_second_sammy_house_kitchen.png"
+image act_second_sammy_house_kitchen_no_electricity = "images/bg/act_second_sammy_house_kitchen_no_electricity.png"
+image act_second_sammy_house_room = "images/bg/act_second_sammy_house_room.png"
+image act_second_sammy_house_street = "images/bg/act_second_sammy_house_street.png"
+
+image sammy_father_idle = "images/char/sammy_father_idle.png"
+image sammy_father_sad = "images/char/sammy_father_sad.png"
+image sammy_father_angry = "images/char/sammy_father_angry.png"
+
+image sammy_mother_idle = "images/char/sammy_mother_idle.png"
+image sammy_mother_smile = "images/char/sammy_mother_smile.png"
 
 image player_battle = TransitionConditionSwitch(Dissolve(0.5, alpha=True),
     "game_state.current_player == spark","images/char/glow/player_battle.webp",

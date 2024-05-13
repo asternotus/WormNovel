@@ -1,197 +1,349 @@
 init python:
-    def playerAction(player):
-        if not game_state.battle_end and not player.turn:
-            if game_state.renpy.get_screen("turn_select"):
-                return Return(player)
-            else:
-                return NullAction()
+    from game.scripts.battle.battle_scripts.fighter import Fighter
+    from game.scripts.battle.battle_scripts.skills.attack_skills.attack_skill import AttackSkill
+    from game.scripts.battle.battle_scripts.skills.armor_skills.armor_skill import ArmorSkill
+    from game.scripts.battle.battle_scripts.skills.restore_skills.restore_skill import RestoreSkill
+    from game.scripts.battle.battle_scripts.skills.attack_skills.electric_impulse import ElectricImpulse
+    from game.scripts.battle.battle_scripts.skills.attack_skills.electric_thunder import ElectricThunder
+    from game.scripts.battle.battle_scripts.skills.attack_skills.electric_shock import ElectricShock
+    from game.scripts.battle.battle_scripts.skills.armor_skills.electric_armor import ElectricArmor
+    from game.scripts.battle.battle_scripts.skills.restore_skills.restore_electricity import RestoreElectricity
+
+    from game.scripts.battle.battle_scripts.effects.stun_effect import StunEffect
+    import random
+
+    def update_enemy_effects():
+        for effect in enemy.effects:
+            if effect.duration <= 0:
+                enemy.effects.remove(effect)
+                continue
+
+            effect.duration -= 1
+
+define player_x_pos = 350
+define player_y_pos = 150
+
+define enemy_x_pos = 1600
+define enemy_y_pos = 150
+
+label test_battle:
+    default active_player_number = 0
+    default active_enemy_number = 0
+
+    image stunned_effect = "images/effects/stunned.png"
+    image effect_icon = "images/effects/stunned.png"
+
+    scene bg
+
+    show player_idle as battler at left, char_sway
+    show enemy_idle as enemy at right, char_sway
+
+    show screen battle_overlay(player.hp, player.mp, enemy.hp, enemy.mp)
+    show screen player_turn_screen(players, active_player_number)
+    show screen enemy_turn_screen(enemies, active_enemy_number)
+
+    jump player_select_turn
+
+label player_select_turn:
+    show screen player_turn_screen(players, active_player_number)
+
+    if len(players) == 1:
+        jump player_turn
+
+    # Формирование списка пунктов меню с проверкой здоровья
+    $ menu_items = [(player.name if player.hp > 0 else "{} (недоступен)".format(player.name), i if player.hp > 0 else None) for i, player in enumerate(players)]
+
+    # Отображение меню и получение выбранного индекса или None для недоступных игроков
+    $ selected_player_index = renpy.display_menu(menu_items)
+
+    $ active_player_number = selected_player_index
+    $ player = players[active_player_number]
+    show player_idle as battler at left, char_sway
+    show screen player_turn_screen(players, active_player_number)
+    show screen battle_overlay(player.hp, player.mp, enemy.hp, enemy.mp)
+    jump player_turn
+
+label player_turn:
+
+    show screen blank_clickable_screen
+
+    $ effects_images = [effect.image for effect in player.effects]
+    show screen player_effects_screen(effects_images)
+
+    $ effects_images = [effect.image for effect in enemy.effects]
+    show screen enemy_effects_screen(effects_images)
+
+    if any(isinstance(effect, StunEffect) for effect in player.effects):
+        hide screen blank_clickable_screen
+
+        me "Я оглушена, не могу действовать."
+
+        show screen blank_clickable_screen
+
+        $ player.update_effects()
+        jump enemy_select_turn
+
+    menu:
+        "Атака":
+
+            $ attack_skills = [skill for skill in player.skills if isinstance(skill, AttackSkill)]
+            show screen skill_hint_screen(attack_skills)
+
+            $ attack_options = [(skill.name, skill if player.mp >= skill.cost else None) for skill in player.skills if isinstance(skill, AttackSkill)]
+            $ attack_options.append(("Назад", "back"))
+
+            $ chosen_skill = renpy.display_menu(attack_options)
+
+            hide screen skill_hint_screen
+            hide screen skill_description_screen
+            hide screen blank_clickable_screen
+
+            if chosen_skill == "back":
+                jump player_turn
+
+            $ player.use_mp(chosen_skill.cost)
+            $ damage = chosen_skill.get_damage()
+            $ effect = chosen_skill.get_effect()
+
+            if effect is not None:
+                $ enemy.effects.append(effect)
+
+            $ enemy.take_damage(damage)
+
+            show screen monster_dmg(damage, enemy_x_pos, enemy_y_pos)
+            show screen battle_overlay(player.hp, player.mp, enemy.hp, enemy.mp)
+            $ renpy.play(chosen_skill.get_success_sound())
+
+            hide enemy_idle
+            show enemy_idle as enemy at right, dying_fade_out, invert_colors
+            pause 0.1
+            show enemy_idle as enemy at right, char_sway, reset_invert
+
+            $ success_text = chosen_skill.get_success_text()
+            # me "[success_text]"
+            $ renpy.pause(1.5, hard=True)
+
+            if all(enemy.hp <= 0 for enemy in enemies):
+                $ renpy.play(character_battle_dead)
+                hide enemy_idle
+                show enemy_idle as enemy at right, dying_fade_out, invert_colors
+                hide screen blank_clickable_screen
+                jump victory
+
+            if enemy.hp <= 0:
+                $ renpy.play(character_battle_dead)
+                show enemy_idle as enemy at right, dying_fade_out, invert_colors
+                $ renpy.pause(2.5, hard=True)
+                hide enemy
+
+                jump enemy_select_turn
+
+        "Защита":
+            $ armor_skills = [skill for skill in player.skills if isinstance(skill, ArmorSkill)]
+            show screen skill_hint_screen(armor_skills)
+
+            $ armor_options = [(skill.name, skill if player.mp >= skill.cost else None) for skill in player.skills if isinstance(skill, ArmorSkill)]
+            $ armor_options.append(("Назад", "back"))
+
+            $ chosen_skill = renpy.display_menu([ (name, skill) for name, skill in armor_options ])
+
+            hide screen skill_hint_screen
+            hide screen skill_description_screen
+            hide screen blank_clickable_screen
+
+            if chosen_skill == "back":
+                jump player_turn
+
+            $ player.use_mp(chosen_skill.cost)
+            $ heal_amount = chosen_skill.get_heal()
+            $ player.heal(heal_amount)
+
+            show screen battle_overlay(player.hp, player.mp, enemy.hp, enemy.mp)
+            $ renpy.play(chosen_skill.get_success_sound())
+
+            $ success_text = chosen_skill.get_success_text()
+            # me "[success_text]"
+            $ renpy.pause(1.5, hard=True)
+
+        "Ресурсы":
+            $ restore_skills = [skill for skill in player.skills if isinstance(skill, RestoreSkill)]
+            show screen skill_hint_screen(restore_skills)
+
+            $ restore_options = [(skill.name, skill if player.mp >= skill.cost else None) for skill in player.skills if isinstance(skill, RestoreSkill)]
+            $ restore_options.append(("Назад", "back"))
+
+            $ chosen_skill = renpy.display_menu([ (name, skill) for name, skill in restore_options ])
+
+            hide screen skill_hint_screen
+            hide screen skill_description_screen
+            hide screen blank_clickable_screen
+
+            if chosen_skill == "back":
+                jump player_turn
+
+            $ restore_amount = chosen_skill.get_restore()
+            $ player.restore_mp(restore_amount)
+
+            show screen battle_overlay(player.hp, player.mp, enemy.hp, enemy.mp)
+            $ renpy.play(chosen_skill.get_success_sound())
+
+            $ success_text = chosen_skill.get_success_text()
+            # me "[success_text]"
+            $ renpy.pause(1.5, hard=True)
+
+        "Пропустить":
+            hide screen skill_hint_screen
+            hide screen skill_description_screen
+            hide screen blank_clickable_screen
+            hide screen blank_clickable_screen
+
+            me "Я ничего не делаю."
+
+            show screen blank_clickable_screen
+
+    jump enemy_select_turn
+
+label enemy_select_turn:
+    show screen enemy_turn_screen(enemies, active_enemy_number)
+
+    if len(enemies) == 1:
+        jump enemy_turn
+
+    $ active_enemies = [i for i, enemy in enumerate(enemies) if enemy.hp > 0]
+
+    if len(active_enemies) > 0:
+        $ active_enemy_number = random.choice(active_enemies)
+        $ enemy = enemies[active_enemy_number]
+        show enemy_idle as enemy at right, char_sway
+        show screen enemy_turn_screen(enemies, active_enemy_number)
+        show screen battle_overlay(player.hp, player.mp, enemy.hp, enemy.mp)
+        jump enemy_turn
+
+label enemy_turn:
+
+    if enemy.hp > 0:
+
+        $ effects_images = [effect.image for effect in player.effects]
+        show screen player_effects_screen(effects_images)
+
+        $ effects_images = [effect.image for effect in enemy.effects]
+        show screen enemy_effects_screen(effects_images)
+
+        if any(isinstance(effect, StunEffect) for effect in enemy.effects):
+            hide screen blank_clickable_screen
+
+            me "Противник оглушен и пропускает ход."
+
+            show screen blank_clickable_screen
+
+            $ enemy.update_effects()
+            jump player_select_turn
+
+        $ available_skills = [skill for skill in enemy.skills if enemy.mp >= skill.cost]
+
+        if available_skills:
+
+            $ chosen_skill = random.choice(available_skills)
+
+            if isinstance(chosen_skill, AttackSkill):
+                $ enemy.use_mp(chosen_skill.cost)
+                $ damage = chosen_skill.get_damage()
+
+                $ effect = chosen_skill.get_effect()
+
+                if effect is not None:
+                    $ player.effects.append(effect)
+
+                $ player.take_damage(damage)
+
+                show screen monster_dmg(damage, player_x_pos, player_y_pos)
+                show screen battle_overlay(player.hp, player.mp, enemy.hp, enemy.mp)
+                $ renpy.play(rock_battle_sound)
+
+                hide player_idle
+                show player_idle as battler at left, dying_fade_out, invert_colors
+                pause 0.1
+                show player_idle as battler at left, char_sway, reset_invert
+
+                $ success_text = chosen_skill.get_success_text()
+                # me "[success_text]"
+                $ renpy.pause(1.5, hard=True)
+
+                if all(player.hp <= 0 for player in players):
+                    $ renpy.play(character_battle_dead)
+                    show player_idle as battler at left, dying_fade_out, invert_colors
+                    hide screen blank_clickable_screen
+                    jump defeat
+
+                if player.hp <= 0:
+                    $ renpy.play(character_battle_dead)
+                    hide battler
+                    show player_idle as battler at left, dying_fade_out, invert_colors
+                    $ renpy.pause(2.5, hard=True)
+                    hide battler
+
+                    jump player_select_turn
+
+            elif isinstance(chosen_skill, ArmorSkill):
+                $ enemy.use_mp(chosen_skill.cost)
+                $ heal_amount = chosen_skill.get_heal()
+                $ enemy.heal(heal_amount)
+
+                show screen battle_overlay(player.hp, player.mp, enemy.hp, enemy.mp)
+                $ renpy.play(chosen_skill.get_success_sound())
+
+                $ success_text = chosen_skill.get_success_text()
+                # me "[success_text]"
+                $ renpy.pause(1.5, hard=True)
+
+            elif isinstance(chosen_skill, RestoreSkill):
+                $ restore_amount = chosen_skill.get_restore()
+                $ enemy.restore_mp(restore_amount)
+
+                show screen battle_overlay(player.hp, player.mp, enemy.hp, enemy.mp)
+                $ renpy.play(chosen_skill.get_success_sound())
+
+                $ success_text = chosen_skill.get_success_text()
+                # me "[success_text]"
+                $ renpy.pause(1.5, hard=True)
         else:
-            return NullAction()
+            hide screen blank_clickable_screen
 
-    def runEvent():
-        global eventrunning
-        eventrunning = True
-        config.allow_skipping = True
-        config.rollback_enabled = True
-        game_state.renpy.choice_for_skipping()
-        game_state.renpy.hide_screen("tooltip")
-        game_state.renpy.retain_after_load()
+            me "Противник ничего не делает."
 
-    def stopEvent():
-        global eventrunning
-        eventrunning = False
-        config.allow_skipping = False
-        config.rollback_enabled = False
-        game_state.renpy.block_rollback()
-        game_state.renpy.choice_for_skipping()
-        preferences.afm_enable = False
+            show screen blank_clickable_screen
 
-$ after_battle_level = "act_first_review"
-
-label battle:
-    $ stopEvent()
-
-    $ game_state.monster_slot = game_state.battle_monsters
-    $ renpy.random.shuffle(game_state.monster_slot)
-    $ battle_manager.asignPos()
-
-    $ game_state.row1btn = False
-    $ game_state.row2btn = False
-    $ game_state.missed_t = []
-    $ game_state.win = False
-    $ game_state.battle_end = False
-    $ game_state.monsters_dead = 0
-    $ game_state.current_player = None
-    show screen battle_tooltip
-
-    random:
-        scene bb1
-        scene bb2
-        scene bb3
-    with pixellate
-
-    call player_select from _call_player_select
-    show screen display_monsters with diss
-    show screen battle_message
-    show screen battle_overlay with diss
-    jump battling
-
-label player_select:
-    # call screen select_p1
-
+    jump player_select_turn
     return
 
-screen select_p1():
-    style_prefix "confirm"
-    frame:
-        yalign 0.2
-        has vbox:
-            label "Выбери игрока №1"
-            for c in game_state.party_list:
-                if c != spark:
-                    textbutton "[c.name]" xalign 0.5 action Return(c)
-            textbutton "Пропустить" xalign 0.5 action Return("none")
-
-screen battle_tooltip():
-    zorder 20
-    $ tooltip = GetTooltip()
-    if tooltip:
-        timer 1 action SetVariable("tt_timer", True)
-        if tt_timer:
-            add MouseTooltip()
-            $ mouse_pos = renpy.get_mouse_pos()
-            $ renpy.set_mouse_pos(mouse_pos[0], mouse_pos[1])
-    else:
-        timer 0.001 action SetVariable("tt_timer", False)
-
-screen battle_overlay():
-    fixed:
-        xoffset 192
-        for p in game_state.battle_players:
-            if game_state.current_player == p:
-                add p.img + "_battle" yalign 1.05 xpos p.img_pos at char_sway
-            else:
-                imagebutton:
-                    focus_mask True
-                    yalign 1.1 xpos p.img_pos
-                    idle p.img + "_battle"
-                    tooltip "{0}\nATK: {1}\nDFN: {2}\n{3}".format(p.name, p.atk, p.dfn, p.p_skills[0].name)
-                    action  Function(playerAction(p))
-            fixed:
-                pos p.bar_pos, 896
-                vbox:
-                    if game_state.current_player == p:
-                        text "[p.name!u]" anchor (1.0,1.0) xoffset 110 style_group "battle_playername" color "#ffcc66"
-                    else:
-                        text "[p.name!u]" anchor (1.0,1.0) xoffset 110 style_group "battle_playername"
-                    text "LVL.[p.lvl] " anchor (1.0,1.0) yoffset -12 xoffset 120 style_group "battle_playerlvl"
-                    fixed:
-                        yoffset -24
-                        bar style "bar_hp" value AnimatedValue(value=p.hp, range=p.hpmax, delay=0.25) xanchor .5
-                        bar style "bar_mp" value AnimatedValue(value=p.mp, range=p.mpmax, delay=0.25) xanchor .5 yalign 0.05
-                        text "[p.hp]/[p.hpmax]" xanchor .5 yalign 0.0075
-                        text "[p.mp]/[p.mpmax]" xanchor .5 yalign 0.0575
-
-screen display_monsters():
-    fixed:
-        pos (576, 600)
-        for m in game_state.monster_slot:
-            fixed:
-                xpos m.sprite_pos
-                if not m.dead:
-                    imagebutton at m.anim:
-                        hover im.MatrixColor(battle_manager.getImage(m), im.matrix.brightness(0.1))
-                        action Return(m), SensitiveIf(skill_manager.canTarget(m))
-                        idle monsterImg(m) anchor (0.5,1.0)
-                        if renpy.get_screen("select_monster"):
-                            insensitive im.MatrixColor(battle_manager.getImage(m), im.matrix.saturation(0.1))
-                        tooltip "{0} HP: {1}".format(m.name, m.hp)
-                    bar style "bar_mhp" value AnimatedValue(value=m.hp, range=m.hpmax, delay=0.25) anchor (0.5,1.0)
-                    text "[m.hp]" xanchor 0.5
-
-screen battle_message():
-    add "images/battle/messagebox.png"
-    hbox:
-        xpos 110 yalign 0.07
-        if game_state.message == "attack":
-            text "Кто атакует?"
-        elif game_state.message == "skill":
-            text "Ходит {0}".format(game_state.current_player.name)
-        elif game_state.message == "item":
-            text "Выбрать предмет"
-        elif game_state.message == "other_skill":
-            text "{0} использует [game_state.msg_skill]!".format(game_state.current_player.name)
-        elif game_state.message == "attack_skill":
-            text "{0} атакует [game_state.msg_mons]!".format(game_state.current_player.name)
-        elif game_state.message == "defend":
-            text "{0} защищается!".format(game_state.current_player.name)
-        elif game_state.message == "m_skill":
-            text "[game_state.msg_mons] атакует с помощью [game_state.msg_skill]!"
-        elif game_state.message == "m_atk":
-            text "[game_state.msg_mons] атакует {0}!".format(roll_target.name)
-        elif game_state.message == "target_who":
-            text "Кто цель?"
-        elif game_state.message == "m_dead":
-            text "[game_state.msg_mons] выбывает!"
-        elif game_state.message == "player_ko":
-            text "[game_state.koplayer] вне боя!"
-        elif game_state.message == "you_win":
-            text "Победа!"
-        elif game_state.message == "lost":
-            text "Поражение..."
-        elif game_state.message == "use_on_who":
-            text "Кто цель способности?"
-        elif game_state.message == "none":
-            text ""
-
-label battling:
-    $ inCombat = True
-    while inCombat:
-        if game_state.battle_end == True:
-            $ inCombat = False
-            jump end_battle
-        $ battle_manager.startPlayersTurn()
-        $ game_state.message = "attack"
-        call turn_actions from _call_turn_actions
-        $ game_state.message = "none"
-        $ monsterTurns()
-
-label end_battle:
+label victory:
+    $ game_state.battles[game_state.current_battle_tag] = True
+    $ renpy.pause(2.5, hard=True)
+    hide screen blank_clickable_screen
+    hide screen player_effects_screen
+    hide screen enemy_effects_screen
+    hide screen skill_hint_screen
+    hide screen monster_dmg
     hide screen battle_overlay
-    with dissolve
-    hide screen battle_message
-    hide screen display_monsters
-    if game_state.win:
-        stop music
-        # play sound fanfare
-        # me "Победа!"
-        # stop sound
-        # $ bf.exp_formula()
-        call expression game_state.label_after_battle from _call_expression
-    else:
-        $ game_state.message = "lost"
-        "Поражение."
-        jump start
-    $ battle_manager.partyRevive()
+    hide screen player_turn_screen
+    hide screen enemy_turn_screen
+
+    jump expression game_state.training_win_label
+
     return
 
+label defeat:
+    $ game_state.battles[game_state.current_battle_tag] = False
+    $ renpy.pause(2.5, hard=True)
+    hide screen blank_clickable_screen
+    hide screen player_effects_screen
+    hide screen enemy_effects_screen
+    hide screen skill_hint_screen
+    hide screen monster_dmg
+    hide screen battle_overlay
+    hide screen player_turn_screen
+    hide screen enemy_turn_screen
+
+    jump expression game_state.training_lose_label
+
+    return

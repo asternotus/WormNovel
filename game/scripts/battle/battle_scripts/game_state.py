@@ -75,6 +75,7 @@ class GameState:
         self.speak_with_teen = True
         self.speak_with_resonance = True
 
+        self.current_battle_tag = None
         self.battles = {"beat_nanoman" : False, "beat_resonance" : False, "beat_monument": False, "beat_planar": False}
 
         # 0 - fahrenheit
@@ -94,7 +95,21 @@ class GameState:
         self.monument_is_ready = False
         self.planar_is_ready = False
 
-        self.actual_investigation_labels = []
+        self.resonance_deal_agree = False
+
+        self.sammy_house_visited = False
+        self.teacher_visited = False
+        self.teacher_short_visited = False
+        self.school_visited = False
+        self.school_short_visited = False
+        self.resonance_visited = False
+
+        self.investigation_completed = False
+
+        self.kaleidoscope_clue = False
+        self.secret_sign_clue = False
+        self.secret_park_place_clue = False
+        self.sammy_video_clue = False
 
     def add_monster(self, monster):
         self.monsters.append(monster)

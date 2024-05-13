@@ -51,6 +51,8 @@ class Game:
         partial_matches = 0
 
         for i, skill in enumerate(self.selected_skills):
+            self.log_battle(str(i))
+            self.log_battle(self.enemy.weakness[i].name)
             if i < len(self.enemy.weakness) and skill == self.enemy.weakness[i]:
                 exact_matches += 1
             elif skill in self.enemy.weakness:
@@ -99,7 +101,7 @@ class Game:
             self.renpy.restart_interaction()
 
     def save_skills(self):
-        self.selected_skills = [slot for slot in self.skill_slots if slot is not None]
+        self.selected_skills = [slot for slot in self.skill_slots]
         self.indicators_shown = True
         self.confirm_button_shown = False
 

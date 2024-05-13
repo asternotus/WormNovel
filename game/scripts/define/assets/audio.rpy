@@ -33,6 +33,14 @@ define strange_music = "audio/music/strange_music.mp3"
 
 define planar_forest = "audio/music/planar_forest.mp3"
 
+# ACT TWO MUSIC
+define west_city_music = "audio/music/west_city_music.mp3"
+define collector_music = "audio/music/collector_music.mp3"
+define legion_battle_music = "audio/music/legion_battle_music.mp3"
+define resonance_back_music = "audio/music/resonance_back_music.mp3"
+
+define sammy_parents_music = "audio/music/sammy_parents_music.mp3"
+
 # play music name loop volume 0.6
 
 # play sound paper_wrap volume 5.5 channel "backsounds_channel"
@@ -129,3 +137,49 @@ define train_stop = "audio/sounds/train_stop.mp3"
 define door_bell = "audio/sounds/door_bell.mp3"
 
 define scream_female = "audio/sounds/scream_female.mp3"
+
+define cloth_wipe = "audio/sounds/cloth_wipe.mp3"
+
+define dragging = "audio/sounds/dragging.mp3"
+define coffee_machine = "audio/sounds/coffee_machine.mp3"
+define sudden_appearance = "audio/sounds/sudden_appearance.mp3"
+
+# Battle Effects
+define thunder_battle_sound = "audio/battle/skills/thunder.ogg"
+define rock_battle_sound = "audio/battle/skills/rock.ogg"
+define character_battle_dead = "audio/battle/monsterdead1.ogg"
+define heal_sound = "audio/battle/skills/ice.ogg"
+define restore_electricity_battle_sound = "audio/battle/monsters/thunder.ogg"
+
+init python:
+    def play_whiz():
+        renpy.sound.set_volume(0.6, channel="backsounds_channel")
+        renpy.sound.play(whiz, channel="backsounds_channel")
+
+    def play_walking():
+        renpy.sound.set_volume(1.0, channel="backsounds_channel")
+        renpy.play(footsteps_walking, channel="backsounds_channel")
+
+    def play_running():
+        renpy.sound.set_volume(1.0, channel="backsounds_channel")
+        renpy.sound.play(footsteps_running, channel="backsounds_channel")
+
+    def play_body_rustle():
+        renpy.sound.set_volume(1.0, channel="backsounds_channel")
+        renpy.play(cloth_wipe, channel="backsounds_channel")
+
+    def play_door_open():
+        renpy.sound.set_volume(1.0, channel="backsounds_channel")
+        renpy.play(door_open, channel="backsounds_channel")
+
+    def play_door_close():
+        renpy.sound.set_volume(1.0, channel="backsounds_channel")
+        renpy.play(door_close, channel="backsounds_channel")
+
+    def play_doorbell():
+        renpy.sound.set_volume(1.0, channel="backsounds_channel")
+        renpy.play(door_bell, channel="backsounds_channel")
+
+    def play_fall_down():
+        renpy.sound.set_volume(1.0, channel="backsounds_channel")
+        renpy.play(fall_down, channel="backsounds_channel")
