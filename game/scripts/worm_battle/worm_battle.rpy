@@ -347,7 +347,7 @@ screen skill_panel():
         
         timer 2.5 action Function(game.hide_skill_panel)
 
-    if all(slot is not None for slot in game.skill_slots) and game.confirm_button_shown:
+    if any(slot is not None for slot in game.skill_slots) and game.confirm_button_shown:
         textbutton "Подтвердить":
             action [Function(game.save_skills), Function(game.finish_select_skills)]
             xalign SUBMIT_BUTTON_X_ALIGN

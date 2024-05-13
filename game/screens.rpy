@@ -245,12 +245,31 @@ style input:
 ##
 ## https://www.renpy.org/doc/html/screen_special.html#choice
 
+default choice_yalign = 0.5
+
+
+init python:
+    style.textbutton_text.hover_color = "#ffffff"
+
+init:
+    $ choice_var = 0
+
 screen choice(items):
     style_prefix "choice"
 
-    vbox:
-        for i in items:
-            textbutton i.caption action i.action
+    if choice_var == 0:
+        vbox:
+            yalign choice_yalign
+            for i in items:
+                textbutton i.caption:
+                    action i.action
+    elif choice_var == 1:
+        vbox:
+            yalign choice_yalign
+            for i in items:
+                textbutton i.caption:
+                    action i.action
+                
 
 
 ## When this is true, menu captions will be spoken by the narrator. When false,
